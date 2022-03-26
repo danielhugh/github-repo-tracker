@@ -4,24 +4,24 @@
    [github-repo-tracker.db :as db]
    [day8.re-frame.tracing :refer-macros [fn-traced]]
    [day8.re-frame.http-fx]
-   [ajax.core :as ajax]
-   ))
+   [ajax.core :as ajax]))
 
 (rf/reg-event-db
  ::initialize-db
  (fn-traced [_ _]
-   db/default-db))
+            db/default-db))
 
 (rf/reg-event-fx
  ::add-repo
  (fn [{:keys [db]} [_ repo-name]]
    {:db (assoc db :adding-repo? true)
-    :fx [[:http-xhrio {:method          :get
-                       :uri             (str "https://api.github.com/search/repositories?q=repo:" repo-name)
-                       :timeout         8000                                           ;; optional see API docs
-                       :response-format (ajax/json-response-format {:keywords? true})  ;; IMPORTANT!: You must provide this.
-                       :on-success      [::add-repo-success]
-                       #_#_:on-failure      [::add-repo-failure]}]]}))
+    :fx [[:http-xhrio {:method :get
+                       :uri "https://api.github.com/search/repositories"
+                       :params {:q (str "repo:" repo-name)}
+                       :timeout 5000
+                       :response-format (ajax/json-response-format {:keywords? true})
+                       :on-success [::add-repo-success]
+                       :on-failure [::add-repo-failure]}]]}))
 
 (rf/reg-event-db
  ::add-repo-success
@@ -32,7 +32,7 @@
      (-> (assoc db :adding-repo? false)
          (assoc-in [:repos (:id repo)] repo)))))
 
-#_(rf/reg-event-db
+(rf/reg-event-db
  ::add-repo-failure
  (fn [db [_ result]]
    ;; TODO
@@ -57,6 +57,4 @@
   (rf/dispatch [::add-repo "thheller/shadow-cljs"])
 
   ;; repos that does not exist
-  (rf/dispatch [::add-repo "day8/calva"])
-
-  )
+  (rf/dispatch [::add-repo "day8/calva"]))
