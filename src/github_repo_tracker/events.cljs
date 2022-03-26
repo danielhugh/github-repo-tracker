@@ -29,8 +29,8 @@
    (let [raw-repo (-> result :items first)
          repo (select-keys raw-repo
                            [:id :full_name :description])]
-     (-> (assoc db :adding-repo? false)
-         (assoc-in [:repos (:id repo)] repo)))))
+     (cond-> (assoc db :adding-repo? false)
+       (> (:total_count result) 0) (assoc-in [:repos (:id repo)] repo)))))
 
 (rf/reg-event-db
  ::add-repo-failure
