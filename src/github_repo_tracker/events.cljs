@@ -1,10 +1,33 @@
 (ns github-repo-tracker.events
   (:require
-   [re-frame.core :as rf]
-   [github-repo-tracker.db :as db]
-   [day8.re-frame.tracing :refer-macros [fn-traced]]
+   [ajax.core :as ajax]
    [day8.re-frame.http-fx]
-   [ajax.core :as ajax]))
+   [day8.re-frame.tracing :refer-macros [fn-traced]]
+   [github-repo-tracker.db :as db]
+   [malli.core :as m]
+   [malli.error :as me]
+   [re-frame.core :as rf]))
+
+;; Interceptors ---------------------------------------------------------------
+
+(def valid-app-db?
+  (m/validator db/app-db-schema))
+
+(defn check-and-throw
+  "Throws an exception if `db` doesn't match the schema `schema`."
+  [schema db]
+  (when-not (valid-app-db? db)
+    (throw
+     (ex-info
+      (str (-> schema
+               (m/explain db)
+               me/humanize))
+      {}))))
+
+(def check-schema-interceptor
+  (rf/after (partial check-and-throw db/app-db-schema)))
+
+;; Event Handlers -------------------------------------------------------------
 
 (rf/reg-event-db
  ::initialize-db
@@ -13,6 +36,7 @@
 
 (rf/reg-event-fx
  ::add-repo
+ [check-schema-interceptor]
  (fn [{:keys [db]} [_ repo-name]]
    {:db (assoc db :adding-repo? true)
     :fx [[:http-xhrio {:method :get
@@ -25,6 +49,7 @@
 
 (rf/reg-event-db
  ::add-repo-success
+ [check-schema-interceptor]
  (fn [db [_ result]]
    (let [raw-repo (-> result :items first)
          repo (select-keys raw-repo
@@ -34,22 +59,13 @@
 
 (rf/reg-event-db
  ::add-repo-failure
+ [check-schema-interceptor]
  (fn [db [_ result]]
    ;; TODO
-   db))
-
-(rf/reg-event-db
- ::reset-db
- (fn [_ _]
-   db/default-db))
+  db))
 
 (comment
   @re-frame.db/app-db
-
-  (rf/dispatch [::reset-db])
-
-  (rf/dispatch [::handler-with-http])
-  (rf/dispatch [::handler-with-http])
 
   ;; repos that exists
   (rf/dispatch [::add-repo "betterthantomorrow/calva"])
@@ -57,4 +73,5 @@
   (rf/dispatch [::add-repo "thheller/shadow-cljs"])
 
   ;; repos that does not exist
-  (rf/dispatch [::add-repo "day8/calva"]))
+  (rf/dispatch [::add-repo "day8/calva"])
+  )
