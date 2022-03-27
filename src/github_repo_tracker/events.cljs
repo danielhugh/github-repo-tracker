@@ -27,6 +27,8 @@
 (def check-schema-interceptor
   (rf/after (partial check-and-throw db/app-db-schema)))
 
+(def ->local-store (rf/after db/repos->local-store))
+
 ;; Helpers --------------------------------------------------------------------
 
 (defn extract-repo [db]
@@ -40,10 +42,12 @@
 
 ;; Event Handlers -------------------------------------------------------------
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::initialize-db
- (fn-traced [_ _]
-            db/default-db))
+ [(rf/inject-cofx ::db/local-store-repos)
+  check-schema-interceptor]
+ (fn [{:keys [local-store-repos]} _]
+   {:db (assoc db/default-db :repos local-store-repos)}))
 
 (rf/reg-event-fx
  ::search-repo
@@ -72,7 +76,8 @@
 
 (rf/reg-event-fx
  ::add-repo
- [check-schema-interceptor]
+ [check-schema-interceptor
+  ->local-store]
  (fn [{:keys [db]} _]
    {:db (extract-repo db)}))
 
