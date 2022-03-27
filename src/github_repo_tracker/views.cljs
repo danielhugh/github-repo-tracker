@@ -20,7 +20,7 @@
 
 (defn add-repo-form []
   (let [search-query (r/atom "")
-        add-repo #(rf/dispatch [::events/add-repo @search-query])
+        add-repo #(rf/dispatch [::events/track-repo @search-query])
         clear-search #(reset! search-query "")]
     (fn []
       [:div

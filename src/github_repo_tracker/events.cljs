@@ -27,6 +27,17 @@
 (def check-schema-interceptor
   (rf/after (partial check-and-throw db/app-db-schema)))
 
+;; Helpers --------------------------------------------------------------------
+
+(defn extract-repo [db]
+  (let [repo-items (-> db :search-repo-response :items)
+        repo (first repo-items)]
+    (if (empty? repo-items)
+      (assoc db :adding-repo? false)
+      (let [repo (select-keys repo
+                              [:id :full_name :description])]
+        (assoc-in db [:repos (:id repo)] repo)))))
+
 ;; Event Handlers -------------------------------------------------------------
 
 (rf/reg-event-db
@@ -35,43 +46,51 @@
             db/default-db))
 
 (rf/reg-event-fx
- ::add-repo
+ ::search-repo
  [check-schema-interceptor]
- (fn [{:keys [db]} [_ repo-name]]
-   {:db (assoc db :adding-repo? true)
-    :fx [[:http-xhrio {:method :get
+ (fn [_ [_ repo-name]]
+   {:fx [[:http-xhrio {:method :get
                        :uri "https://api.github.com/search/repositories"
                        :params {:q (str "repo:" repo-name)}
                        :timeout 5000
                        :response-format (ajax/json-response-format {:keywords? true})
-                       :on-success [::add-repo-success]
-                       :on-failure [::add-repo-failure]}]]}))
+                       :on-success [::search-repo-success]
+                       :on-failure [::search-repo-failure]}]]}))
+
+(rf/reg-event-fx
+ ::search-repo-success
+ [check-schema-interceptor]
+ (fn [{:keys [db]} [_ response]]
+   {:db (assoc db :search-repo-response response)
+    :fx [[:dispatch [::add-repo]]]}))
 
 (rf/reg-event-db
- ::add-repo-success
+ ::search-repo-failure
  [check-schema-interceptor]
- (fn [db [_ result]]
-   (let [raw-repo (-> result :items first)
-         repo (select-keys raw-repo
-                           [:id :full_name :description])]
-     (cond-> (assoc db :adding-repo? false)
-       (> (:total_count result) 0) (assoc-in [:repos (:id repo)] repo)))))
+ (fn [db _]
+   (assoc db :adding-repo? false)))
 
-(rf/reg-event-db
- ::add-repo-failure
+(rf/reg-event-fx
+ ::add-repo
  [check-schema-interceptor]
- (fn [db [_ result]]
-   ;; TODO
-  db))
+ (fn [{:keys [db]} _]
+   {:db (extract-repo db)}))
+
+(rf/reg-event-fx
+ ::track-repo
+ [check-schema-interceptor]
+ (fn [{:keys [db]} [_ repo-name]]
+   {:db (assoc db :adding-repo? true)
+    :fx [[:dispatch [::search-repo repo-name]]]}))
 
 (comment
   @re-frame.db/app-db
 
   ;; repos that exists
-  (rf/dispatch [::add-repo "betterthantomorrow/calva"])
-  (rf/dispatch [::add-repo "day8/re-frame"])
-  (rf/dispatch [::add-repo "thheller/shadow-cljs"])
+  (rf/dispatch [::track-repo "betterthantomorrow/calva"])
+  (rf/dispatch [::track-repo "day8/re-frame"])
+  (rf/dispatch [::track-repo "thheller/shadow-cljs"])
 
   ;; repos that does not exist
-  (rf/dispatch [::add-repo "day8/calva"])
+  (rf/dispatch [::track-repo "day8/calva"])
   )

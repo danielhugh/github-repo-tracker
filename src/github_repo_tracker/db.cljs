@@ -3,6 +3,7 @@
 (def app-db-schema
   [:map
    [:adding-repo? {:optional true} boolean?]
+   [:search-repo-response {:optional true} [:map-of any? any?]]
    [:repos [:map-of int?
             [:map
              [:description [:maybe string?]]
