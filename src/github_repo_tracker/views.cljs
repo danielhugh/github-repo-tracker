@@ -8,7 +8,7 @@
 (defn repo-item [repo]
   [:article.media.columns {:style {"margin-top" "25px"}}
    [:figure.media-left.column.is-2
-    [:p (:full_name repo)]]
+    [:a {:href (:html_url repo) :target "_blank"} (:full_name repo)]]
    [:div.media-content
     [:div.content
      [:p (:full_name repo)]

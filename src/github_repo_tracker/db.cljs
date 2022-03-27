@@ -8,6 +8,7 @@
             [:map
              [:description [:maybe string?]]
              [:full_name string?]
+             [:html_url string?]
              [:id int?]]]]])
 
 (def default-db

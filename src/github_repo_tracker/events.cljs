@@ -35,7 +35,7 @@
     (if (empty? repo-items)
       (assoc db :adding-repo? false)
       (let [repo (select-keys repo
-                              [:id :full_name :description])]
+                              [:id :full_name :description :html_url])]
         (assoc-in db [:repos (:id repo)] repo)))))
 
 ;; Event Handlers -------------------------------------------------------------
