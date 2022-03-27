@@ -47,7 +47,12 @@
   [:div.container.is-fluid
    [:header {:style {:margin-top "25px"
                      :margin-bottom "25px"}}
-    [:h1.title "GitHub Repo Tracker"]]
+    [:div.columns
+     [:h1.title.column "GitHub Repo Tracker"]
+     [:div.column.is-2
+      [:button.button.is-danger.is-pulled-right
+       {:on-click #(rf/dispatch [::events/clear-app-data])}
+       "Clear App Data"]]]]
    [:main
     [add-repo-form]
     [repo-list]]])

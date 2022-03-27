@@ -2,7 +2,6 @@
   (:require
    [ajax.core :as ajax]
    [day8.re-frame.http-fx]
-   [day8.re-frame.tracing :refer-macros [fn-traced]]
    [github-repo-tracker.db :as db]
    [malli.core :as m]
    [malli.error :as me]
@@ -87,6 +86,13 @@
  (fn [{:keys [db]} [_ repo-name]]
    {:db (assoc db :adding-repo? true)
     :fx [[:dispatch [::search-repo repo-name]]]}))
+
+(rf/reg-event-fx
+ ::clear-app-data
+ [check-schema-interceptor
+  ->local-store]
+ (fn [_ _]
+   {:db db/default-db}))
 
 (comment
   @re-frame.db/app-db
