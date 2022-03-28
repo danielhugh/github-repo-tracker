@@ -17,9 +17,23 @@
  (fn [[_ id] _]
    (rf/subscribe [::repo-by-id id]))
 
- (fn [repo [_ id]]
+ (fn [repo _]
    (when-let [published-at (get-in repo [:latest-release :published_at])]
      (.toLocaleDateString (js/Date. published-at)))))
+
+(rf/reg-sub
+ ::active-repo
+ (fn [db _]
+   (get db :active-repo)))
+
+(comment @(rf/subscribe [::active-repo]))
+
+(rf/reg-sub
+ ::release-notes
+ (fn [[_ id] _]
+   (rf/subscribe [::repo-by-id id]))
+ (fn [repo _]
+   (get-in repo [:latest-release :body])))
 
 (comment
   ;; babashka
@@ -32,5 +46,4 @@
 
   ;; shadow-cljs (no releases)
   @(rf/subscribe [::repo-by-id 43973779])
-  @(rf/subscribe [::latest-release-date-str-by-id 43973779])
-  )
+  @(rf/subscribe [::latest-release-date-str-by-id 43973779]))

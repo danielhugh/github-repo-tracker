@@ -16,7 +16,9 @@
              [:latest-release {:optional true}
               [:map
                [:tag_name string?]
-               [:published_at inst?]]]]]]])
+               [:published_at inst?]
+               [:body {:optional true} string?]]]]]]
+   [:active-repo {:optional true} int?]])
 
 (def default-db
   {:repos {}})

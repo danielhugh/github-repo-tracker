@@ -40,7 +40,7 @@
         (assoc-in db [:repos (:id repo)] repo)))))
 
 (defn extract-release-info [release-response]
-  (-> (select-keys release-response [:tag_name :published_at])
+  (-> (select-keys release-response [:tag_name :published_at :body])
       (update :published_at #(cljs.reader/parse-timestamp %))))
 
 ;; Event Handlers -------------------------------------------------------------
@@ -144,6 +144,15 @@
   ->local-store]
  (fn [db _]
    (assoc db :adding-repo? false)))
+
+;; Repos ----------------------------------------------------------------------
+
+(rf/reg-event-db
+ ::select-repo
+ [check-schema-interceptor
+  ->local-store]
+ (fn [db [_ id]]
+   (assoc db :active-repo id)))
 
 (comment
   @re-frame.db/app-db

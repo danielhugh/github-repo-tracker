@@ -1,5 +1,6 @@
 (ns github-repo-tracker.views
   (:require
+   [clojure.string :as str]
    [re-frame.core :as rf]
    [github-repo-tracker.subs :as subs]
    [github-repo-tracker.events :as events]
@@ -11,7 +12,7 @@
     (fn [repo]
       (let [tag-name (-> repo :latest-release :tag_name)]
         [:article.media.columns {:style {"margin-top" "25px"}}
-         [:figure.media-left.column.is-2
+         [:figure.media-left.column.is-4
           [:div.tags.has-addons
            [:span.tag.is-dark (:full_name repo)]
            (when tag-name
@@ -22,7 +23,10 @@
            [:p (:full_name repo)]
            [:p (:description repo)]
            (when @release-date-str
-             [:p "Latest publish date: " @release-date-str])]]
+             [:p "Latest publish date: " @release-date-str])
+           [:button.button.is-info
+            {:on-click #(rf/dispatch [::events/select-repo (:id repo)])}
+            "View Details"]]]
          [:div.media-right
           [:button.delete]]]))))
 
@@ -53,6 +57,16 @@
        [:div.control
         [:a.button.is-info {:on-click add-repo} "Add"]]])))
 
+(defn release-notes-panel []
+  (let [selected-repo @(rf/subscribe [::subs/active-repo])
+        release-notes @(rf/subscribe [::subs/release-notes selected-repo])]
+    (when selected-repo
+      [:div
+       [:h2.subtitle "Release Notes"]
+       (if (str/blank? release-notes)
+         [:p "No release notes provided"]
+         [:p release-notes])])))
+
 (defn main-panel []
   [:div.container.is-fluid
    [:header {:style {:margin-top "25px"
@@ -64,5 +78,9 @@
        {:on-click #(rf/dispatch [::events/clear-app-data])}
        "Clear App Data"]]]]
    [:main
-    [add-repo-form]
-    [repo-list]]])
+    [:div.columns
+     [:div.column.is-6
+      [add-repo-form]
+      [repo-list]]
+     [:div.column
+      [release-notes-panel]]]]])
