@@ -35,8 +35,9 @@
         repo (first repo-items)]
     (if (empty? repo-items)
       (assoc db :adding-repo? false)
-      (let [repo (select-keys repo
-                              [:id :full_name :description :html_url])]
+      (let [repo (merge {:viewed? false}
+                        (select-keys repo
+                                     [:id :full_name :description :html_url]))]
         (assoc-in db [:repos (:id repo)] repo)))))
 
 (defn extract-release-info [release-response]
@@ -147,12 +148,20 @@
 
 ;; Repos ----------------------------------------------------------------------
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::select-repo
  [check-schema-interceptor
   ->local-store]
+ (fn [{:keys [db]} [_ id]]
+   {:db (assoc db :active-repo id)
+    :fx [[:dispatch [::mark-repo-as-viewed id]]]}))
+
+(rf/reg-event-db
+ ::mark-repo-as-viewed
+ [check-schema-interceptor
+  ->local-store]
  (fn [db [_ id]]
-   (assoc db :active-repo id)))
+   (assoc-in db [:repos id :viewed?] true)))
 
 (comment
   @re-frame.db/app-db

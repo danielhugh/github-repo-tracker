@@ -8,7 +8,8 @@
 
 (defn repo-item [repo]
   (let [repo-id (:id repo)
-        release-date-str (rf/subscribe [::subs/latest-release-date-str-by-id repo-id])]
+        release-date-str (rf/subscribe [::subs/latest-release-date-str-by-id repo-id])
+        up-to-date (rf/subscribe [::subs/repo-viewed? repo-id])]
     (fn [repo]
       (let [tag-name (-> repo :latest-release :tag_name)]
         [:article.media.columns {:style {"margin-top" "25px"}}
@@ -24,6 +25,15 @@
            [:p (:description repo)]
            (when @release-date-str
              [:p "Latest publish date: " @release-date-str])
+           (if @up-to-date
+             [:div
+              [:span.icon.has-text-success
+               [:i.fas.fa-check-circle]]
+              [:span "You are up-to-date"]]
+             [:div
+              [:span.icon.has-text-info
+               [:i.fas.fa-info-circle]]
+              [:span "New release info!"]])
            [:button.button.is-info
             {:on-click #(rf/dispatch [::events/select-repo (:id repo)])}
             "View Details"]]]

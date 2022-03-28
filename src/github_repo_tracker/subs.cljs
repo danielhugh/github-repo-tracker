@@ -35,6 +35,16 @@
  (fn [repo _]
    (get-in repo [:latest-release :body])))
 
+(rf/reg-sub
+ ::repo-viewed?
+ (fn [[_ id] _]
+   (rf/subscribe [::repo-by-id id]))
+ (fn [repo _]
+   (:viewed? repo)))
+
+(comment
+  @(rf/subscribe [::repo-viewed? 41881900]))
+
 (comment
   ;; babashka
   @(rf/subscribe [::repo-by-id 201467090])

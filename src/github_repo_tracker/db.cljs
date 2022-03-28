@@ -17,7 +17,9 @@
               [:map
                [:tag_name string?]
                [:published_at inst?]
-               [:body {:optional true} string?]]]]]]
+               [:body {:optional true} string?]]]
+             [:viewed? boolean?]
+             [:last-viewed-at {:optional true} inst?]]]]
    [:active-repo {:optional true} int?]])
 
 (def default-db
