@@ -6,19 +6,25 @@
    [reagent.core :as r]))
 
 (defn repo-item [repo]
-  (let [release-date-str @(rf/subscribe [::subs/latest-release-date-str-by-id (:id repo)])]
+  (let [repo-id (:id repo)
+        release-date-str (rf/subscribe [::subs/latest-release-date-str-by-id repo-id])]
     (fn [repo]
-      [:article.media.columns {:style {"margin-top" "25px"}}
-       [:figure.media-left.column.is-2
-        [:a {:href (:html_url repo) :target "_blank"} (:full_name repo)]]
-       [:div.media-content
-        [:div.content
-         [:p (:full_name repo)]
-         [:p (:description repo)]
-         (when release-date-str
-           [:p "Latest publish date: " release-date-str])]]
-       [:div.media-right
-        [:button.delete]]])))
+      (let [tag-name (-> repo :latest-release :tag_name)]
+        [:article.media.columns {:style {"margin-top" "25px"}}
+         [:figure.media-left.column.is-2
+          [:div.tags.has-addons
+           [:span.tag.is-dark (:full_name repo)]
+           (when tag-name
+             [:span.tag.is-info tag-name])]
+          [:a {:href (:html_url repo) :target "_blank"} (:full_name repo)]]
+         [:div.media-content
+          [:div.content
+           [:p (:full_name repo)]
+           [:p (:description repo)]
+           (when @release-date-str
+             [:p "Latest publish date: " @release-date-str])]]
+         [:div.media-right
+          [:button.delete]]]))))
 
 (defn repo-list []
   (let [repos @(rf/subscribe [::subs/repos])]
