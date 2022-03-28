@@ -6,12 +6,17 @@
   [:map
    [:adding-repo? {:optional true} boolean?]
    [:search-repo-response {:optional true} [:map-of any? any?]]
+   [:latest-release-response {:optional true} [:map-of any? any?]]
    [:repos [:map-of int?
             [:map
              [:description [:maybe string?]]
              [:full_name string?]
              [:html_url string?]
-             [:id int?]]]]])
+             [:id int?]
+             [:latest-release {:optional true}
+              [:map
+               [:tag_name string?]
+               [:published_at inst?]]]]]]])
 
 (def default-db
   {:repos {}})
