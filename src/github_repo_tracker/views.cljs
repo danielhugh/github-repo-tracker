@@ -50,7 +50,8 @@
 (defn add-repo-form []
   (let [search-query (r/atom "")
         add-repo #(rf/dispatch [::events/track-repo @search-query])
-        clear-search #(reset! search-query "")]
+        clear-search #(reset! search-query "")
+        adding-repo? (rf/subscribe [::subs/adding-repo?])]
     (fn []
       [:div.field.has-addons
        [:div.control.is-expanded
@@ -58,6 +59,7 @@
                        :value @search-query
                        :auto-focus true
                        :placeholder "Track a repository by its full name (i.e., microsoft/vscode)"
+                       :disabled @adding-repo?
                        :on-change #(reset! search-query
                                            (-> % .-target .-value))
                        :on-key-down #(case (.-keyCode %)
@@ -65,7 +67,9 @@
                                        27 (clear-search)
                                        nil)}]]
        [:div.control
-        [:a.button.is-info {:on-click add-repo} "Add"]]])))
+        [:a.button.is-info {:on-click add-repo
+                            :disabled @adding-repo?}
+         "Add"]]])))
 
 (defn release-notes-panel []
   (let [selected-repo @(rf/subscribe [::subs/active-repo])
