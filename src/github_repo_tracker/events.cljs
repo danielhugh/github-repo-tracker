@@ -136,8 +136,10 @@
   ->local-store]
  (fn [{:keys [db]} [_ id]]
    (let [release-response (:latest-release-response db)]
-     {:db (assoc-in db [:repos id :latest-release]
-                    (extract-release-info release-response))})))
+     {:db (-> db
+              (assoc-in [:repos id :latest-release]
+                        (extract-release-info release-response))
+              (assoc :adding-repo? false))})))
 
 (rf/reg-event-db
  ::fetch-latest-release-failure
