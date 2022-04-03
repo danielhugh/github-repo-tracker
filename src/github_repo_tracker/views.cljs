@@ -9,10 +9,13 @@
 (defn repo-item [repo]
   (let [repo-id (:id repo)
         release-date-str (rf/subscribe [::subs/latest-release-date-str-by-id repo-id])
-        up-to-date (rf/subscribe [::subs/repo-viewed? repo-id])]
+        up-to-date (rf/subscribe [::subs/repo-viewed? repo-id])
+        selected-repo (rf/subscribe [::subs/active-repo])]
     (fn [repo]
       (let [tag-name (-> repo :latest-release :tag_name)]
-        [:article.media.columns {:style {"margin-top" "25px"}}
+        [:article.media.columns {:style (cond-> {"margin-top" "25px"}
+                                          (= @selected-repo repo-id)
+                                          (conj {"background-color" "#eeeeee"}))}
          [:figure.media-left.column.is-4
           [:div.tags.has-addons
            [:span.tag.is-dark (:full_name repo)]
