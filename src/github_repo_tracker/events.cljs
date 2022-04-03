@@ -59,8 +59,9 @@
  ::search-repo
  [check-schema-interceptor
   ->local-store]
- (fn [_ [_ repo-name]]
-   {:fx [[:http-xhrio {:method :get
+ (fn [{:keys [db]} [_ repo-name]]
+   {:db (dissoc db :repo/error)
+    :fx [[:http-xhrio {:method :get
                        :uri "https://api.github.com/search/repositories"
                        :params {:q (str "repo:" repo-name)}
                        :timeout 5000
@@ -81,8 +82,11 @@
  ::search-repo-failure
  [check-schema-interceptor
   ->local-store]
- (fn [db _]
-   (assoc db :adding-repo? false)))
+ (fn [db [_ response]]
+   (-> db
+       (assoc :search-repo-response response)
+       (assoc :repo/error (-> response :response :errors first :message))
+       (assoc :adding-repo? false))))
 
 (rf/reg-event-fx
  ::add-repo

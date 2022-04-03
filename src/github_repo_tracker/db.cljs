@@ -20,7 +20,8 @@
                [:body {:optional true} string?]]]
              [:viewed? boolean?]
              [:last-viewed-at {:optional true} inst?]]]]
-   [:active-repo {:optional true} int?]])
+   [:active-repo {:optional true} int?]
+   [:repo/error {:optional true} string?]])
 
 (def default-db
   {:repos {}})

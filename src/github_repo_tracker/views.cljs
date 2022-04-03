@@ -6,6 +6,12 @@
    [github-repo-tracker.events :as events]
    [reagent.core :as r]))
 
+
+(defn error-component [path]
+  (let [error-message (rf/subscribe path)]
+    [:p.help.is-danger @error-message]))
+
+
 (defn repo-item [repo]
   (let [repo-id (:id repo)
         release-date-str (rf/subscribe [::subs/latest-release-date-str-by-id repo-id])
@@ -56,23 +62,25 @@
         clear-search #(reset! search-query "")
         adding-repo? (rf/subscribe [::subs/adding-repo?])]
     (fn []
-      [:div.field.has-addons
-       [:div.control.is-expanded
-        [:input.input {:type "text"
-                       :value @search-query
-                       :auto-focus true
-                       :placeholder "Track a repository by its full name (i.e., microsoft/vscode)"
-                       :disabled @adding-repo?
-                       :on-change #(reset! search-query
-                                           (-> % .-target .-value))
-                       :on-key-down #(case (.-keyCode %)
-                                       13 (add-repo)
-                                       27 (clear-search)
-                                       nil)}]]
-       [:div.control
-        [:a.button.is-info {:on-click add-repo
-                            :disabled @adding-repo?}
-         "Add"]]])))
+      [:div
+       [:div.field.has-addons
+        [:div.control.is-expanded
+         [:input.input {:type "text"
+                        :value @search-query
+                        :auto-focus true
+                        :placeholder "Track a repository by its full name (i.e., microsoft/vscode)"
+                        :disabled @adding-repo?
+                        :on-change #(reset! search-query
+                                            (-> % .-target .-value))
+                        :on-key-down #(case (.-keyCode %)
+                                        13 (add-repo)
+                                        27 (clear-search)
+                                        nil)}]]
+        [:div.control
+         [:a.button.is-info {:on-click add-repo
+                             :disabled @adding-repo?}
+          "Add"]]]
+       [error-component [:repo/error]]])))
 
 (defn release-notes-panel []
   (let [selected-repo @(rf/subscribe [::subs/active-repo])

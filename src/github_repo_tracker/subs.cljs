@@ -45,6 +45,11 @@
  (fn [db _]
    (:adding-repo? db)))
 
+(rf/reg-sub
+ :repo/error
+ (fn [db _]
+   (:repo/error db)))
+
 (comment
   @(rf/subscribe [::repo-viewed? 41881900]))
 
