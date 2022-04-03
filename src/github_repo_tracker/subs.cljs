@@ -4,7 +4,7 @@
 
 (rf/reg-sub
  ::repos
- (fn [db]
+ (fn [db _]
    (vals (:repos db))))
 
 (rf/reg-sub
@@ -25,8 +25,6 @@
  ::active-repo
  (fn [db _]
    (get db :active-repo)))
-
-(comment @(rf/subscribe [::active-repo]))
 
 (rf/reg-sub
  ::release-notes
