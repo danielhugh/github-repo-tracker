@@ -4,8 +4,7 @@
    [re-frame.core :as rf]
    [github-repo-tracker.events :as events]
    [github-repo-tracker.views :as views]
-   [github-repo-tracker.config :as config]
-   ))
+   [github-repo-tracker.config :as config]))
 
 
 (defn dev-setup []
