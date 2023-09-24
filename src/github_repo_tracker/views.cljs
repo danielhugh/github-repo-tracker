@@ -22,7 +22,7 @@
         [:article.media.columns.mt-4
          {:style (cond-> {}
                    (= @selected-repo repo-id)
-                   (conj {"background-color" "#eeeeee"}))}
+                   (conj {"backgroundColor" "#eeeeee"}))}
          [:figure.media-left.column.is-4
           [:div.tags.has-addons
            [:span.tag.is-dark (:full_name repo)]
