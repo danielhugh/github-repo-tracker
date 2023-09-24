@@ -1,0 +1,16 @@
+query repo($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    id
+    description
+    descriptionHTML
+    name
+    nameWithOwner
+    url
+    latestRelease {
+      id
+      tagName
+      publishedAt
+      
+    }
+  }
+}

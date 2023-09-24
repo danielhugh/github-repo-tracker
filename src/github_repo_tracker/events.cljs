@@ -3,6 +3,8 @@
    [ajax.core :as ajax]
    [day8.re-frame.http-fx]
    [github-repo-tracker.db :as db]
+   [github-repo-tracker.env :as env]
+   [re-graph.core :as re-graph]
    [malli.core :as m]
    [malli.error :as me]
    [re-frame.core :as rf]))
@@ -51,7 +53,12 @@
  [(rf/inject-cofx ::db/local-store-repos)
   check-schema-interceptor]
  (fn [{:keys [local-store-repos]} _]
-   {:db (assoc db/default-db :repos local-store-repos)}))
+   {:db (assoc db/default-db :repos local-store-repos)
+    :fx [[:dispatch [::re-graph/init
+                     {:ws nil #_{:impl {:headers {:Authorization GITHUB-ACCESS-TOKEN}}}
+                      :http {:url "https://api.github.com/graphql"
+                             :impl {:with-credentials? false
+                                    :headers {"Authorization" (str "Bearer " env/GITHUB-ACCESS-TOKEN)}}}}]]]}))
 
 ;; Search ---------------------------------------------------------------------
 

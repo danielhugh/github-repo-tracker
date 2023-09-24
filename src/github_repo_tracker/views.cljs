@@ -1,10 +1,10 @@
 (ns github-repo-tracker.views
-  (:require
-   [clojure.string :as str]
-   [re-frame.core :as rf]
-   [github-repo-tracker.subs :as subs]
-   [github-repo-tracker.events :as events]
-   [reagent.core :as r]))
+  (:require [clojure.string :as str]
+            [github-repo-tracker.events :as events]
+            [github-repo-tracker.repository :refer [graphql-form-ui]]
+            [github-repo-tracker.subs :as subs]
+            [re-frame.core :as rf]
+            [reagent.core :as r]))
 
 
 (defn error-component [path]
@@ -108,4 +108,5 @@
       [add-repo-form]
       [repo-list]]
      [:div.column
-      [release-notes-panel]]]]])
+      [release-notes-panel]]]]
+   [graphql-form-ui]])

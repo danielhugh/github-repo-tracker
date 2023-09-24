@@ -1,6 +1,27 @@
 (ns github-repo-tracker.db
   (:require [cljs.reader]
+            [github-repo-tracker.repository :refer [RepoList RepositoryMetadata Repository]]
             [re-frame.core :as rf]))
+
+(def AppErrors
+  [:vector
+   [:map
+    [:message string?]]])
+
+(def App
+  [:map
+   [:active-repo {:optional true} string?]
+   [:adding-repo? boolean?]
+   [:errors {:optional true} AppErrors]])
+
+(def app-db-schema2
+  [:map
+   [:app {:optional true} App]
+   [:repo-list RepoList]
+   [:repos [:map-of
+            string? [:map
+                     [:metadata {:optional true} RepositoryMetadata]
+                     [:repo-info Repository]]]]])
 
 (def app-db-schema
   [:map
@@ -21,10 +42,13 @@
              [:viewed? boolean?]
              [:last-viewed-at {:optional true} inst?]]]]
    [:active-repo {:optional true} int?]
-   [:repo/error {:optional true} string?]])
+   [:repo/error {:optional true} string?]
+   [:new-schema app-db-schema2]])
 
 (def default-db
-  {:repos {}})
+  {:new-schema {:repo-list []
+                :repos {}}
+   :repos {}})
 
 ;; Local Storage  ----------------------------------------------------------
 
