@@ -19,9 +19,10 @@
         selected-repo (rf/subscribe [::subs/active-repo])]
     (fn [repo]
       (let [tag-name (-> repo :latest-release :tag_name)]
-        [:article.media.columns {:style (cond-> {"margin-top" "25px"}
-                                          (= @selected-repo repo-id)
-                                          (conj {"background-color" "#eeeeee"}))}
+        [:article.media.columns.mt-4
+         {:style (cond-> {}
+                   (= @selected-repo repo-id)
+                   (conj {"background-color" "#eeeeee"}))}
          [:figure.media-left.column.is-4
           [:div.tags.has-addons
            [:span.tag.is-dark (:full_name repo)]
@@ -94,8 +95,7 @@
 
 (defn main-panel []
   [:div.container.is-fluid
-   [:header {:style {:margin-top "25px"
-                     :margin-bottom "25px"}}
+   [:header.my-4
     [:div.columns
      [:h1.title.column "GitHub Repo Tracker"]
      [:div.column.is-2
