@@ -135,7 +135,7 @@
 (defn graphql-form-ui
   []
   (r/with-let [draft (r/atom {})]
-    [:<>
+    [:form
      [:div.field
       [:label.label "Repository Owner"]
       [:div.control
@@ -153,7 +153,10 @@
      [:pre (str @draft)]
      [:div.control
       [:button.button.is-primary
-       {:on-click #(rf/dispatch [::gql-track-repo @draft])}
+       {:type "submit"
+        :on-click (fn [e]
+                    (.preventDefault e)
+                    (rf/dispatch [::gql-track-repo @draft]))}
        "Submit"]]
      [:pre
       (with-out-str (pprint @(rf/subscribe [::new-schema])))]]))

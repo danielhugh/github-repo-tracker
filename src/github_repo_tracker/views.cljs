@@ -59,11 +59,13 @@
 
 (defn add-repo-form []
   (let [search-query (r/atom "")
-        add-repo #(rf/dispatch [::events/track-repo @search-query])
+        add-repo (fn [e]
+                   (.preventDefault e)
+                   (rf/dispatch [::events/track-repo @search-query]))
         clear-search #(reset! search-query "")
         adding-repo? (rf/subscribe [::subs/adding-repo?])]
     (fn []
-      [:div
+      [:form
        [:div.field.has-addons
         [:div.control.is-expanded
          [:input.input {:type "text"
@@ -74,12 +76,12 @@
                         :on-change #(reset! search-query
                                             (-> % .-target .-value))
                         :on-key-down #(case (.-keyCode %)
-                                        13 (add-repo)
                                         27 (clear-search)
                                         nil)}]]
         [:div.control
-         [:a.button.is-info {:on-click add-repo
-                             :disabled @adding-repo?}
+         [:button.button.is-info {:type "submit"
+                                  :on-click add-repo
+                                  :disabled @adding-repo?}
           "Add"]]]
        [error-component [:repo/error]]])))
 
