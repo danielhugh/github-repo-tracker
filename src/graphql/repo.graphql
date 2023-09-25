@@ -8,9 +8,9 @@ query repo($owner: String!, $name: String!) {
     url
     latestRelease {
       id
+      description
       tagName
       publishedAt
-      
     }
   }
 }

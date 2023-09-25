@@ -43,6 +43,7 @@
    [:latestRelease
     [:map
      [:id string?]
+     [:description string?]
      [:tagName string?]
      [:publishedAt string?]]]])
 
