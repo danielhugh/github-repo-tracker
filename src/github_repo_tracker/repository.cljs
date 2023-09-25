@@ -253,6 +253,7 @@
        [:input.input
         {:type "text"
          :placeholder "e.g. microsoft"
+         :value (:owner @draft)
          :on-change #(swap! draft assoc :owner (-> % .-target .-value))}]]]
      [:div.field
       [:label.label "Repository Name"]
@@ -260,6 +261,7 @@
        [:input.input
         {:type "text"
          :placeholder "e.g. vscode"
+         :value (:name @draft)
          :on-change #(swap! draft assoc :name (-> % .-target .-value))}]]]
      [:pre (str @draft)]
      [:div.control
@@ -267,7 +269,8 @@
        {:type "submit"
         :on-click (fn [e]
                     (.preventDefault e)
-                    (rf/dispatch [::gql-track-repo @draft]))}
+                    (rf/dispatch [::gql-track-repo @draft])
+                    (reset! draft {}))}
        "Submit"]]
      [:pre
       (with-out-str (pprint @(rf/subscribe [::new-schema])))]]))
