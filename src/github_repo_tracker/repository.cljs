@@ -74,9 +74,9 @@
   [db data]
   (let [repo-id (extract-repo-id data)
         repo-info (extract-repo-info data)
-        repos (get-in db [:new-schema :repos])]
+        repo-list (get-in db [:new-schema :repo-list])]
     (cond-> db
-      (not (repo-exists? repos repo-id))
+      (not (repo-exists? repo-list repo-id))
       (update-in [:new-schema :repo-list]
                  append-id-to-repo-list repo-id)
 
