@@ -104,14 +104,16 @@
    (let [{:keys [data errors]} response]
      (tap> response)
      ;; REVIEW: In GraphQL, failure is not total. Bother with partial handling?
-     (cond
-       (some? errors)
-       (gql-track-repo-handler-failure db errors)
+     (->
+      (cond
+        (some? errors)
+        (gql-track-repo-handler-failure db errors)
 
-       (some? data)
-       (gql-track-repo-handler-success db data)
+        (some? data)
+        (gql-track-repo-handler-success db data)
 
-       :else db))))
+        :else db)
+      (update-in [:new-schema :app] set-request-loading false)))))
 
 (rf/reg-event-fx
  ::gql-track-repo
