@@ -1,7 +1,7 @@
 (ns github-repo-tracker.views
   (:require [clojure.string :as str]
             [github-repo-tracker.events :as events]
-            [github-repo-tracker.repository :refer [graphql-form-ui]]
+            [github-repo-tracker.repository :as repository]
             [github-repo-tracker.subs :as subs]
             [re-frame.core :as rf]
             [reagent.core :as r]))
@@ -111,4 +111,6 @@
       [repo-list]]
      [:div.column
       [release-notes-panel]]]]
-   [graphql-form-ui]])
+   [repository/graphql-form-ui]
+   [repository/repo-list-ui]
+   [repository/release-notes-ui]])

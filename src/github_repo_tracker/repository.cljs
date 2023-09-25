@@ -95,6 +95,14 @@
   [app-state adding-repo?]
   (assoc app-state :adding-repo? adding-repo?))
 
+(defn- set-repo-viewed-status
+  [repo-metadata]
+  (assoc repo-metadata :viewed? true))
+
+(defn- set-active-repo
+  [app-state id]
+  (assoc app-state :active-repo id))
+
 ;; Events
 
 (rf/reg-event-db
@@ -126,6 +134,13 @@
                         :variables (get-in gql-info [:graphql :variables])
                         :callback  [::gql-track-repo-handler]}]]]})))
 
+(rf/reg-event-db
+ ::view-release-notes
+ (fn [db [_ id]]
+   (-> db
+       (update-in [:new-schema :app] set-active-repo id)
+       (update-in [:new-schema :repos id :metadata] set-repo-viewed-status))))
+
 ;; Subs
 
 ;;; App
@@ -140,7 +155,7 @@
  (fn [_]
    (rf/subscribe [::app-state]))
  (fn [app-state _]
-   (get app-state :active-repo app-state)))
+   (get app-state :active-repo)))
 
 (rf/reg-sub
  ::adding-repo?
@@ -236,15 +251,95 @@
  (fn [repo-info _]
    (get repo-info :description)))
 
+(rf/reg-sub
+ ::latest-release-info
+ (fn [_]
+   [(rf/subscribe [::active-repo]) (rf/subscribe [::repos])])
+ (fn [[active-repo-id repos] _]
+   (get-in repos [active-repo-id :repo-info :latestRelease])))
+
 (comment
   @(rf/subscribe [::latest-release-by-id "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="])
   @(rf/subscribe [::latest-release-date-str-by-id "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="])
-  @(rf/subscribe [::latest-release-notes-by-id "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="]))
+  @(rf/subscribe [::latest-release-notes-by-id "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="])
+  @(rf/subscribe [::latest-release-info]))
 
 ;; Views
 
-(defn graphql-form-ui
-  []
+;; TODO: Handle showing errors in UI
+#_(defn error-component-ui [path]
+    (let [error-message @(rf/subscribe path)]
+      [:p.help.is-danger error-message]))
+
+(defn repo-item-ui [repo]
+  (let [repo-id (:id repo)
+        release-date-str @(rf/subscribe [::latest-release-date-str-by-id repo-id])
+        up-to-date @(rf/subscribe [::repo-viewed? repo-id])
+        selected-repo @(rf/subscribe [::active-repo])
+        latest-release @(rf/subscribe [::latest-release-by-id repo-id])
+        tag-name (:tagName latest-release)]
+    [:<>
+     [:article.media.columns.mt-4
+      {:style (cond-> {}
+                (= selected-repo repo-id)
+                (conj {"backgroundColor" "#eeeeee"}))}
+      [:figure.media-left.column.is-4
+       [:div.tags.has-addons
+        [:span.tag.is-dark (:nameWithOwner repo)]
+        (when tag-name
+          [:span.tag.is-info tag-name])]
+       [:a {:href (:html_url repo) :target "_blank"} (:nameWithOwner repo)]]
+      [:div.media-content
+       [:div.content
+        [:p (:nameWithOwner repo)]
+        [:p (:description repo)]
+        (when release-date-str
+          [:p "Latest publish date: " release-date-str])
+        (if up-to-date
+          [:div
+           [:span.icon.has-text-success
+            [:i.fas.fa-check-circle]]
+           [:span "You are up-to-date"]]
+          [:div
+           [:span.icon.has-text-info
+            [:i.fas.fa-info-circle]]
+           [:span "New release info!"]])
+        [:button.button.is-info
+         {:on-click #(rf/dispatch [::view-release-notes repo-id])}
+         "View Details"]]]
+      [:div.media-right
+       [:button.delete]]]
+     [:pre (with-out-str (pprint repo))]]))
+
+(defn repo-list-ui []
+  (let [repo-list @(rf/subscribe [::repo-list])]
+    [:div
+     (doall
+      (for [repo-id repo-list]
+        (let [repo-info @(rf/subscribe [::repo-info-by-id repo-id])]
+          ^{:key repo-id}
+          [repo-item-ui repo-info])))]))
+
+(defn release-notes-ui []
+  (let [repo-list @(rf/subscribe [::repo-list])
+        active-repo @(rf/subscribe [::active-repo])
+        release-info @(rf/subscribe [::latest-release-info])]
+    [:div
+     [:h2.subtitle "Release Notes"]
+     (cond
+       (empty? repo-list)
+       [:p "Add a repo to start viewing its release notes."]
+
+       (nil? active-repo)
+       [:p "Select a repo to view its release notes."]
+
+       (empty? release-info)
+       [:p "No release notes provided"]
+
+       :else
+       [:p (:description release-info)])]))
+
+(defn graphql-form-ui []
   (r/with-let [draft (r/atom {})]
     [:form
      [:div.field
