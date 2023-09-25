@@ -126,10 +126,118 @@
 
 ;; Subs
 
+;;; App
+
+(rf/reg-sub
+ ::app-state
+ (fn [db _]
+   (get-in db [:new-schema :app])))
+
+(rf/reg-sub
+ ::active-repo
+ (fn [_]
+   (rf/subscribe [::app-state]))
+ (fn [app-state _]
+   (get app-state :active-repo app-state)))
+
+(rf/reg-sub
+ ::adding-repo?
+ (fn [_]
+   (rf/subscribe [::app-state]))
+ (fn [app-state _]
+   (get app-state :adding-repo?)))
+
+(rf/reg-sub
+ ::app-errors
+ (fn [_]
+   (rf/subscribe [::app-state]))
+ (fn [app-state _]
+   (get app-state :errors)))
+
+(comment
+  @(rf/subscribe [::app-state])
+  @(rf/subscribe [::active-repo])
+  @(rf/subscribe [::adding-repo?])
+  @(rf/subscribe [::app-errors]))
+
+;;; Repo
+
 (rf/reg-sub
  ::new-schema
  (fn [db _]
    (:new-schema db)))
+
+(rf/reg-sub
+ ::repos
+ (fn [db _]
+   (get-in db [:new-schema :repos])))
+
+(rf/reg-sub
+ ::repo-list
+ (fn [db _]
+   (get-in db [:new-schema :repo-list])))
+
+(rf/reg-sub
+ ::repo-by-id
+ (fn [db [_ id]]
+   (get-in db [:new-schema :repos id])))
+
+(rf/reg-sub
+ ::repo-metadata-by-id
+ (fn [db [_ id]]
+   (get-in db [:new-schema :repos id :metadata])))
+
+(rf/reg-sub
+ ::repo-info-by-id
+ (fn [db [_ id]]
+   (get-in db [:new-schema :repos id :repo-info])))
+
+(rf/reg-sub
+ ::repo-viewed?
+ (fn [[_ id]]
+   (rf/subscribe [::repo-metadata-by-id id]))
+ (fn [repo-metadata _]
+   (get repo-metadata :viewed?)))
+
+(comment
+  @(rf/subscribe [::repos])
+  @(rf/subscribe [::repo-list])
+
+  ;; microsoft/vscode
+  @(rf/subscribe [::repo-by-id "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="])
+  @(rf/subscribe [::repo-metadata-by-id "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="])
+  @(rf/subscribe [::repo-info-by-id "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="])
+  ;; TODO: Test once view tag is reimplemented
+  @(rf/subscribe [::repo-viewed? "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="]))
+
+;;; Releases
+
+(rf/reg-sub
+ ::latest-release-by-id
+ (fn [[_ id]]
+   (rf/subscribe [::repo-info-by-id id]))
+ (fn [repo-info _]
+   (get repo-info :latestRelease)))
+
+(rf/reg-sub
+ ::latest-release-date-str-by-id
+ (fn [[_ id]]
+   (rf/subscribe [::latest-release-by-id id]))
+ (fn [latest-release]
+   (when-let [published-at (:publishedAt latest-release)]
+     (.toLocaleDateString (js/Date. published-at)))))
+
+(rf/reg-sub
+ ::latest-release-notes-by-id
+ (fn [[_ id] _]
+   (rf/subscribe [::latest-release-by-id id]))
+ (fn [repo-info _]
+   (get repo-info :description)))
+
+(comment
+  @(rf/subscribe [::latest-release-by-id "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="])
+  @(rf/subscribe [::latest-release-date-str-by-id "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="])
+  @(rf/subscribe [::latest-release-notes-by-id "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="]))
 
 ;; Views
 
