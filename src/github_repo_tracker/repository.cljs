@@ -6,8 +6,7 @@
    [graphql-builder.parser :refer-macros [defgraphql]]
    [re-frame.core :as rf]
    [re-graph.core :as re-graph]
-   [reagent.core :as r]
-   [github-repo-tracker.db :as db]))
+   [reagent.core :as r]))
 
 ;; Setup
 
@@ -70,7 +69,9 @@
 
 (defn- set-repo-viewed-status
   [repo-metadata]
-  (assoc repo-metadata :viewed? true))
+  (assoc repo-metadata
+         :viewed? true
+         :last-viewed-at (js/Date.)))
 
 (defn- set-active-repo
   [app-state id]
