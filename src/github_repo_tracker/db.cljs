@@ -27,11 +27,12 @@
    [:nameWithOwner string?]
    [:url string?]
    [:latestRelease
-    [:map
-     [:id string?]
-     [:description string?]
-     [:tagName string?]
-     [:publishedAt string?]]]])
+    [:maybe
+     [:map
+      [:id string?]
+      [:description string?]
+      [:tagName string?]
+      [:publishedAt string?]]]]])
 
 (def AppErrors
   [:vector
