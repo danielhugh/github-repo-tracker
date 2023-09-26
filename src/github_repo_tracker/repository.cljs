@@ -348,4 +348,4 @@
                     (.preventDefault e)
                     (rf/dispatch [::gql-track-repo @draft])
                     (reset! draft {}))}
-       "Submit"]]]))
+       "Track Repo"]]]))
