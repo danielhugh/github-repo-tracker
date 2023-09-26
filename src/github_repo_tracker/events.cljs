@@ -1,29 +1,10 @@
 (ns github-repo-tracker.events
   (:require
-   [ajax.core :as ajax]
-   [day8.re-frame.http-fx]
    [github-repo-tracker.db :as db]
    [github-repo-tracker.env :as env]
    [github-repo-tracker.interceptors :refer [standard-interceptors]]
    [re-graph.core :as re-graph]
    [re-frame.core :as rf]))
-
-
-;; Helpers --------------------------------------------------------------------
-
-(defn extract-repo [db]
-  (let [repo-items (-> db :search-repo-response :items)
-        repo (first repo-items)]
-    (if (empty? repo-items)
-      (assoc db :adding-repo? false)
-      (let [repo (merge {:viewed? false}
-                        (select-keys repo
-                                     [:id :full_name :description :html_url]))]
-        (assoc-in db [:repos (:id repo)] repo)))))
-
-(defn extract-release-info [release-response]
-  (-> (select-keys release-response [:tag_name :published_at :body])
-      (update :published_at #(cljs.reader/parse-timestamp %))))
 
 ;; Event Handlers -------------------------------------------------------------
 
@@ -45,114 +26,7 @@
 ;; Search ---------------------------------------------------------------------
 
 (rf/reg-event-fx
- ::search-repo
- [standard-interceptors]
- (fn [{:keys [db]} [_ repo-name]]
-   {:db (dissoc db :repo/error)
-    :fx [[:http-xhrio {:method :get
-                       :uri "https://api.github.com/search/repositories"
-                       :params {:q (str "repo:" repo-name)}
-                       :timeout 5000
-                       :response-format (ajax/json-response-format {:keywords? true})
-                       :on-success [::search-repo-success]
-                       :on-failure [::search-repo-failure]}]]}))
-
-(rf/reg-event-fx
- ::search-repo-success
- [standard-interceptors]
- (fn [{:keys [db]} [_ response]]
-   {:db (assoc db :search-repo-response response)
-    :fx [[:dispatch [::add-repo]]
-         [:dispatch [::fetch-latest-release]]]}))
-
-(rf/reg-event-db
- ::search-repo-failure
- [standard-interceptors]
- (fn [db [_ response]]
-   (-> db
-       (assoc :search-repo-response response)
-       (assoc :repo/error (-> response :response :errors first :message))
-       (assoc :adding-repo? false))))
-
-(rf/reg-event-fx
- ::add-repo
- [standard-interceptors]
- (fn [{:keys [db]} _]
-   {:db (extract-repo db)}))
-
-(rf/reg-event-fx
- ::track-repo
- [standard-interceptors]
- (fn [{:keys [db]} [_ repo-name]]
-   {:db (assoc db :adding-repo? true)
-    :fx [[:dispatch [::search-repo repo-name]]]}))
-
-(rf/reg-event-fx
  ::clear-app-data
  [standard-interceptors]
  (fn [_ _]
    {:fx [[:dispatch [::initialize-db {:reset? true}]]]}))
-
-;; Releases -------------------------------------------------------------------
-
-(rf/reg-event-fx
- ::fetch-latest-release
- (fn [{:keys [db]} _]
-   [standard-interceptors]
-   (let [id (-> db :search-repo-response :items first :id)
-         repo-full-name (-> db :search-repo-response :items first :full_name)]
-     {:fx [[:http-xhrio {:method :get
-                         :uri (str "https://api.github.com/repos/" repo-full-name "/releases/latest")
-                         :timeout 5000
-                         :response-format (ajax/json-response-format {:keywords? true})
-                         :on-success [::fetch-latest-release-success id]
-                         :on-failure [::fetch-latest-release-failure]}]]})))
-
-(rf/reg-event-fx
- ::fetch-latest-release-success
- [standard-interceptors]
- (fn [{:keys [db]} [_ id response]]
-   {:db (assoc db :latest-release-response response)
-    :fx [[:dispatch [::add-release-info-by-id id]]]}))
-
-(rf/reg-event-fx
- ::add-release-info-by-id
- [standard-interceptors]
- (fn [{:keys [db]} [_ id]]
-   (let [release-response (:latest-release-response db)]
-     {:db (-> db
-              (assoc-in [:repos id :latest-release]
-                        (extract-release-info release-response))
-              (assoc :adding-repo? false))})))
-
-(rf/reg-event-db
- ::fetch-latest-release-failure
- [standard-interceptors]
- (fn [db _]
-   (assoc db :adding-repo? false)))
-
-;; Repos ----------------------------------------------------------------------
-
-(rf/reg-event-fx
- ::select-repo
- [standard-interceptors]
- (fn [{:keys [db]} [_ id]]
-   {:db (assoc db :active-repo id)
-    :fx [[:dispatch [::mark-repo-as-viewed id]]]}))
-
-(rf/reg-event-db
- ::mark-repo-as-viewed
- [standard-interceptors]
- (fn [db [_ id]]
-   (assoc-in db [:repos id :viewed?] true)))
-
-(comment
-  @re-frame.db/app-db
-
-  ;; repos that exists
-  (rf/dispatch [::track-repo "betterthantomorrow/calva"])
-  (rf/dispatch [::track-repo "day8/re-frame"])
-  (rf/dispatch [::track-repo "thheller/shadow-cljs"])
-
-  ;; repos that does not exist
-  (rf/dispatch [::track-repo "day8/calva"]))
