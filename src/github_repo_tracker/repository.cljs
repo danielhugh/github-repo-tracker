@@ -289,8 +289,7 @@
          {:on-click #(rf/dispatch [::view-release-notes repo-id])}
          "View Details"]]]
       [:div.media-right
-       [:button.delete]]]
-     [:pre (with-out-str (pprint repo))]]))
+       [:button.delete]]]]))
 
 (defn repo-list-ui []
   (let [repo-list @(rf/subscribe [::repo-list])]
@@ -339,7 +338,6 @@
          :placeholder "e.g. vscode"
          :value (:name @draft)
          :on-change #(swap! draft assoc :name (-> % .-target .-value))}]]]
-     [:pre (str @draft)]
      [:div.control
       [:button.button.is-primary
        {:type "submit"
@@ -347,6 +345,4 @@
                     (.preventDefault e)
                     (rf/dispatch [::gql-track-repo @draft])
                     (reset! draft {}))}
-       "Submit"]]
-     [:pre
-      (with-out-str (pprint @(rf/subscribe [::new-schema])))]]))
+       "Submit"]]]))
