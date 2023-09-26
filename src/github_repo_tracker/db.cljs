@@ -85,16 +85,16 @@
 
 (def ls-key "github-repo-tracker")
 
-(defn repos->local-store
-  [{:keys [repos]}]
-  (.setItem js/localStorage ls-key (str repos)))
+(defn db->local-store
+  [db]
+  (.setItem js/localStorage ls-key (str db)))
 
 ;; cofx Registrations  -----------------------------------------------------
 
 (rf/reg-cofx
- ::local-store-repos
+ ::local-store-data
  (fn [cofx _]
-   (assoc cofx :local-store-repos
+   (assoc cofx :local-store-data
           (into (hash-map)
                 (some->> (.getItem js/localStorage ls-key)
                          (cljs.reader/read-string))))))

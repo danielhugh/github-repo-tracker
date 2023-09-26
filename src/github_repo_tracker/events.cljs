@@ -30,9 +30,9 @@
 (rf/reg-event-fx
  ::initialize-db
  [standard-interceptors
-  (rf/inject-cofx ::db/local-store-repos)]
- (fn [{:keys [local-store-repos]} _]
-   {:db (assoc db/default-db :repos local-store-repos)
+  (rf/inject-cofx ::db/local-store-data)]
+ (fn [{:keys [local-store-data]} _]
+   {:db (merge db/default-db local-store-data)
     :fx [[:dispatch [::re-graph/init
                      {:ws nil #_{:impl {:headers {:Authorization GITHUB-ACCESS-TOKEN}}}
                       :http {:url "https://api.github.com/graphql"

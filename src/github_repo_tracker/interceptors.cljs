@@ -23,7 +23,7 @@
 (def check-schema-interceptor
   (rf/after (partial check-and-throw db/app-db-schema)))
 
-(def ->local-store (rf/after db/repos->local-store))
+(def ->local-store (rf/after db/db->local-store))
 
 (def standard-interceptors
   [(when config/debug? rf/debug)
