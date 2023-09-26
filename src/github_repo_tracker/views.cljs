@@ -105,13 +105,10 @@
        {:on-click #(rf/dispatch [::events/clear-app-data])}
        "Clear App Data"]]]]
    [:main
+    [repository/graphql-form-ui]
+    [repository/error-component-ui]
     [:div.columns
      [:div.column.is-6
-      [add-repo-form]
-      [repo-list]]
+      [repository/repo-list-ui]]
      [:div.column
-      [release-notes-panel]]]]
-   [repository/graphql-form-ui]
-   [repository/error-component-ui]
-   [repository/repo-list-ui]
-   [repository/release-notes-ui]])
+      [repository/release-notes-ui]]]]])
