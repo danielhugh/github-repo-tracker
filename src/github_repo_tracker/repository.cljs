@@ -6,7 +6,8 @@
    [graphql-builder.parser :refer-macros [defgraphql]]
    [re-frame.core :as rf]
    [re-graph.core :as re-graph]
-   [reagent.core :as r]))
+   [reagent.core :as r]
+   [github-repo-tracker.db :as db]))
 
 ;; Setup
 
@@ -55,6 +56,10 @@
   [app-state errors]
   (assoc app-state :errors errors))
 
+(defn- clear-app-errors
+  [app-state]
+  (dissoc app-state :errors))
+
 (defn- gql-track-repo-handler-failure
   [db errors]
   (update-in db [:new-schema :app] update-app-errors errors))
@@ -80,23 +85,24 @@
    (let [{:keys [data errors]} response]
      (tap> response)
      ;; REVIEW: In GraphQL, failure is not total. Bother with partial handling?
-     (->
-      (cond
-        (some? errors)
-        (gql-track-repo-handler-failure db errors)
+     (-> (cond
+           (some? errors)
+           (gql-track-repo-handler-failure db errors)
 
-        (some? data)
-        (gql-track-repo-handler-success db data)
+           (some? data)
+           (gql-track-repo-handler-success db data)
 
-        :else db)
-      (update-in [:new-schema :app] set-request-loading false)))))
+           :else db)
+         (update-in [:new-schema :app] set-request-loading false)))))
 
 (rf/reg-event-fx
  ::gql-track-repo
  [standard-interceptors]
  (fn [{:keys [db]} [_ form]]
    (let [gql-info (repo-query form)]
-     {:db (update-in db [:new-schema :app] set-request-loading true)
+     {:db (-> db
+              (update-in [:new-schema :app] set-request-loading true)
+              (update-in [:new-schema :app] clear-app-errors))
       :fx [[:dispatch [::re-graph/query
                        {:query (get-in gql-info [:graphql :query])
                         :variables (get-in gql-info [:graphql :variables])
@@ -139,6 +145,13 @@
    (rf/subscribe [::app-state]))
  (fn [app-state _]
    (get app-state :errors)))
+
+(rf/reg-sub
+ ::first-app-error
+ (fn [_]
+   (rf/subscribe [::app-errors]))
+ (fn [app-errors _]
+   (first app-errors)))
 
 (comment
   @(rf/subscribe [::app-state])
@@ -235,10 +248,9 @@
 
 ;; Views
 
-;; TODO: Handle showing errors in UI
-#_(defn error-component-ui [path]
-    (let [error-message @(rf/subscribe path)]
-      [:p.help.is-danger error-message]))
+(defn error-component-ui []
+  (let [error @(rf/subscribe [::first-app-error])]
+    [:p.help.is-danger (:message error)]))
 
 (defn repo-item-ui [repo]
   (let [repo-id (:id repo)

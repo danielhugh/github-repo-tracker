@@ -112,5 +112,6 @@
      [:div.column
       [release-notes-panel]]]]
    [repository/graphql-form-ui]
+   [repository/error-component-ui]
    [repository/repo-list-ui]
    [repository/release-notes-ui]])
