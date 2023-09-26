@@ -31,8 +31,11 @@
  ::initialize-db
  [standard-interceptors
   (rf/inject-cofx ::db/local-store-data)]
- (fn [{:keys [local-store-data]} _]
-   {:db (merge db/default-db local-store-data)
+ (fn [{:keys [local-store-data]} [_ {:keys [reset?]
+                                     :or {reset? false}
+                                     :as _opts}]]
+   {:db (merge db/default-db
+               (if reset? {} local-store-data))
     :fx [[:dispatch [::re-graph/init
                      {:ws nil #_{:impl {:headers {:Authorization GITHUB-ACCESS-TOKEN}}}
                       :http {:url "https://api.github.com/graphql"
@@ -88,7 +91,7 @@
  ::clear-app-data
  [standard-interceptors]
  (fn [_ _]
-   {:db db/default-db}))
+   {:fx [[:dispatch [::initialize-db {:reset? true}]]]}))
 
 ;; Releases -------------------------------------------------------------------
 
