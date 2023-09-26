@@ -270,7 +270,7 @@
         [:span.tag.is-dark (:nameWithOwner repo)]
         (when tag-name
           [:span.tag.is-info tag-name])]
-       [:a {:href (:html_url repo) :target "_blank"} (:nameWithOwner repo)]]
+       [:a {:href (:url repo) :target "_blank"} (:nameWithOwner repo)]]
       [:div.media-content
        [:div.content
         [:p (:nameWithOwner repo)]
