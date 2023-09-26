@@ -4,31 +4,10 @@
    [day8.re-frame.http-fx]
    [github-repo-tracker.db :as db]
    [github-repo-tracker.env :as env]
+   [github-repo-tracker.interceptors :refer [standard-interceptors]]
    [re-graph.core :as re-graph]
-   [malli.core :as m]
-   [malli.error :as me]
    [re-frame.core :as rf]))
 
-;; Interceptors ---------------------------------------------------------------
-
-(def valid-app-db?
-  (m/validator db/app-db-schema))
-
-(defn check-and-throw
-  "Throws an exception if `db` doesn't match the schema `schema`."
-  [schema db]
-  (when-not (valid-app-db? db)
-    (throw
-     (ex-info
-      (str (-> schema
-               (m/explain db)
-               me/humanize))
-      {}))))
-
-(def check-schema-interceptor
-  (rf/after (partial check-and-throw db/app-db-schema)))
-
-(def ->local-store (rf/after db/repos->local-store))
 
 ;; Helpers --------------------------------------------------------------------
 
@@ -50,8 +29,8 @@
 
 (rf/reg-event-fx
  ::initialize-db
- [(rf/inject-cofx ::db/local-store-repos)
-  check-schema-interceptor]
+ [standard-interceptors
+  (rf/inject-cofx ::db/local-store-repos)]
  (fn [{:keys [local-store-repos]} _]
    {:db (assoc db/default-db :repos local-store-repos)
     :fx [[:dispatch [::re-graph/init
@@ -64,8 +43,7 @@
 
 (rf/reg-event-fx
  ::search-repo
- [check-schema-interceptor
-  ->local-store]
+ [standard-interceptors]
  (fn [{:keys [db]} [_ repo-name]]
    {:db (dissoc db :repo/error)
     :fx [[:http-xhrio {:method :get
@@ -78,8 +56,7 @@
 
 (rf/reg-event-fx
  ::search-repo-success
- [check-schema-interceptor
-  ->local-store]
+ [standard-interceptors]
  (fn [{:keys [db]} [_ response]]
    {:db (assoc db :search-repo-response response)
     :fx [[:dispatch [::add-repo]]
@@ -87,8 +64,7 @@
 
 (rf/reg-event-db
  ::search-repo-failure
- [check-schema-interceptor
-  ->local-store]
+ [standard-interceptors]
  (fn [db [_ response]]
    (-> db
        (assoc :search-repo-response response)
@@ -97,23 +73,20 @@
 
 (rf/reg-event-fx
  ::add-repo
- [check-schema-interceptor
-  ->local-store]
+ [standard-interceptors]
  (fn [{:keys [db]} _]
    {:db (extract-repo db)}))
 
 (rf/reg-event-fx
  ::track-repo
- [check-schema-interceptor
-  ->local-store]
+ [standard-interceptors]
  (fn [{:keys [db]} [_ repo-name]]
    {:db (assoc db :adding-repo? true)
     :fx [[:dispatch [::search-repo repo-name]]]}))
 
 (rf/reg-event-fx
  ::clear-app-data
- [check-schema-interceptor
-  ->local-store]
+ [standard-interceptors]
  (fn [_ _]
    {:db db/default-db}))
 
@@ -122,8 +95,7 @@
 (rf/reg-event-fx
  ::fetch-latest-release
  (fn [{:keys [db]} _]
-   [check-schema-interceptor
-    ->local-store]
+   [standard-interceptors]
    (let [id (-> db :search-repo-response :items first :id)
          repo-full-name (-> db :search-repo-response :items first :full_name)]
      {:fx [[:http-xhrio {:method :get
@@ -135,16 +107,14 @@
 
 (rf/reg-event-fx
  ::fetch-latest-release-success
- [check-schema-interceptor
-  ->local-store]
+ [standard-interceptors]
  (fn [{:keys [db]} [_ id response]]
    {:db (assoc db :latest-release-response response)
     :fx [[:dispatch [::add-release-info-by-id id]]]}))
 
 (rf/reg-event-fx
  ::add-release-info-by-id
- [check-schema-interceptor
-  ->local-store]
+ [standard-interceptors]
  (fn [{:keys [db]} [_ id]]
    (let [release-response (:latest-release-response db)]
      {:db (-> db
@@ -154,8 +124,7 @@
 
 (rf/reg-event-db
  ::fetch-latest-release-failure
- [check-schema-interceptor
-  ->local-store]
+ [standard-interceptors]
  (fn [db _]
    (assoc db :adding-repo? false)))
 
@@ -163,16 +132,14 @@
 
 (rf/reg-event-fx
  ::select-repo
- [check-schema-interceptor
-  ->local-store]
+ [standard-interceptors]
  (fn [{:keys [db]} [_ id]]
    {:db (assoc db :active-repo id)
     :fx [[:dispatch [::mark-repo-as-viewed id]]]}))
 
 (rf/reg-event-db
  ::mark-repo-as-viewed
- [check-schema-interceptor
-  ->local-store]
+ [standard-interceptors]
  (fn [db [_ id]]
    (assoc-in db [:repos id :viewed?] true)))
 
