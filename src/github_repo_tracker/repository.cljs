@@ -328,6 +328,7 @@
        [:input.input
         {:type "text"
          :placeholder "e.g. microsoft"
+         :disabled @(rf/subscribe [::adding-repo?])
          :value (:owner @draft)
          :on-change #(swap! draft assoc :owner (-> % .-target .-value))}]]]
      [:div.field
@@ -336,11 +337,13 @@
        [:input.input
         {:type "text"
          :placeholder "e.g. vscode"
+         :disabled @(rf/subscribe [::adding-repo?])
          :value (:name @draft)
          :on-change #(swap! draft assoc :name (-> % .-target .-value))}]]]
      [:div.control
       [:button.button.is-primary
        {:type "submit"
+        :disabled @(rf/subscribe [::adding-repo?])
         :on-click (fn [e]
                     (.preventDefault e)
                     (rf/dispatch [::gql-track-repo @draft])
