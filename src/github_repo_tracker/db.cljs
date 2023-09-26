@@ -1,7 +1,8 @@
 (ns github-repo-tracker.db
-  (:require [cljs.reader]
-            [malli.core :as m]
-            [re-frame.core :as rf]))
+  (:require
+   [cljs.reader]
+   [malli.core :as m]
+   [re-frame.core :as rf]))
 
 (def distinct-sequence
   (m/schema [:and

@@ -3,10 +3,8 @@
    [github-repo-tracker.db :as db]
    [github-repo-tracker.env :as env]
    [github-repo-tracker.interceptors :refer [standard-interceptors]]
-   [re-graph.core :as re-graph]
-   [re-frame.core :as rf]))
-
-;; Event Handlers -------------------------------------------------------------
+   [re-frame.core :as rf]
+   [re-graph.core :as re-graph]))
 
 (rf/reg-event-fx
  ::initialize-db
@@ -18,13 +16,10 @@
    {:db (merge db/default-db
                (if reset? {} local-store-data))
     :fx [[:dispatch [::re-graph/init
-                     {:ws nil #_{:impl {:headers {:Authorization GITHUB-ACCESS-TOKEN}}}
+                     {:ws nil
                       :http {:url "https://api.github.com/graphql"
                              :impl {:with-credentials? false
                                     :headers {"Authorization" (str "Bearer " env/GITHUB-ACCESS-TOKEN)}}}}]]]}))
-
-;; Search ---------------------------------------------------------------------
-
 (rf/reg-event-fx
  ::clear-app-data
  [standard-interceptors]

@@ -1,7 +1,7 @@
 (ns github-repo-tracker.interceptors
   (:require
-   [github-repo-tracker.db :as db]
    [github-repo-tracker.config :as config]
+   [github-repo-tracker.db :as db]
    [malli.core :as m]
    [malli.error :as me]
    [re-frame.core :as rf]))

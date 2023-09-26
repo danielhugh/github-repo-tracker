@@ -1,6 +1,5 @@
 (ns github-repo-tracker.repository
   (:require
-   [cljs.pprint :refer [pprint]]
    [github-repo-tracker.interceptors :refer [standard-interceptors]]
    [graphql-builder.core :as core]
    [graphql-builder.parser :refer-macros [defgraphql]]
@@ -202,7 +201,6 @@
   @(rf/subscribe [::repo-by-id "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="])
   @(rf/subscribe [::repo-metadata-by-id "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="])
   @(rf/subscribe [::repo-info-by-id "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="])
-  ;; TODO: Test once view tag is reimplemented
   @(rf/subscribe [::repo-viewed? "MDEwOlJlcG9zaXRvcnk0MTg4MTkwMA=="]))
 
 ;;; Releases
