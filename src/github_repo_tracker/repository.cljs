@@ -1,12 +1,12 @@
 (ns github-repo-tracker.repository
   (:require
    [cljs.pprint :refer [pprint]]
+   [github-repo-tracker.interceptors :refer [standard-interceptors]]
    [graphql-builder.core :as core]
    [graphql-builder.parser :refer-macros [defgraphql]]
    [re-frame.core :as rf]
-   [malli.core :as m]
-   [reagent.core :as r]
-   [re-graph.core :as re-graph]))
+   [re-graph.core :as re-graph]
+   [reagent.core :as r]))
 
 ;; Setup
 
@@ -14,38 +14,6 @@
 (def query-map (graphql-builder.core/query-map graphql-queries))
 
 (def repo-query (get-in query-map [:query :repo]))
-
-;; Schema
-
-(def distinct-sequence
-  (m/schema [:and
-             [:sequential any?]
-             [:fn {:error/message "all elements should be distinct"}
-              (fn [xs]
-                (or (empty? xs)
-                    (apply distinct? xs)))]]))
-
-(def RepoList
-  [:and [:vector string?] distinct-sequence])
-
-(def RepositoryMetadata
-  [:map
-   [:viewed? boolean?]
-   [:last-viewed-at inst?]])
-
-(def Repository
-  [:map
-   [:id string?]
-   [:description string?]
-   [:name string?]
-   [:nameWithOwner string?]
-   [:url string?]
-   [:latestRelease
-    [:map
-     [:id string?]
-     [:description string?]
-     [:tagName string?]
-     [:publishedAt string?]]]])
 
 ;; Helpers
 
@@ -107,7 +75,7 @@
 
 (rf/reg-event-db
  ::gql-track-repo-handler
- [rf/debug]
+ [standard-interceptors]
  (fn [db [_ {:keys [response]}]]
    (let [{:keys [data errors]} response]
      (tap> response)
@@ -125,7 +93,7 @@
 
 (rf/reg-event-fx
  ::gql-track-repo
- [rf/debug]
+ [standard-interceptors]
  (fn [{:keys [db]} [_ form]]
    (let [gql-info (repo-query form)]
      {:db (update-in db [:new-schema :app] set-request-loading true)
@@ -136,6 +104,7 @@
 
 (rf/reg-event-db
  ::view-release-notes
+ [standard-interceptors]
  (fn [db [_ id]]
    (-> db
        (update-in [:new-schema :app] set-active-repo id)
