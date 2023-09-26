@@ -45,7 +45,7 @@
    [:adding-repo? boolean?]
    [:errors {:optional true} AppErrors]])
 
-(def app-db-schema2
+(def app-db-schema
   [:map
    [:app {:optional true} App]
    [:repo-list RepoList]
@@ -54,31 +54,8 @@
                      [:metadata {:optional true} RepositoryMetadata]
                      [:repo-info Repository]]]]])
 
-(def app-db-schema
-  [:map
-   [:adding-repo? {:optional true} boolean?]
-   [:search-repo-response {:optional true} [:map-of any? any?]]
-   [:latest-release-response {:optional true} [:map-of any? any?]]
-   [:repos [:map-of int?
-            [:map
-             [:description [:maybe string?]]
-             [:full_name string?]
-             [:html_url string?]
-             [:id int?]
-             [:latest-release {:optional true}
-              [:map
-               [:tag_name string?]
-               [:published_at inst?]
-               [:body {:optional true} string?]]]
-             [:viewed? boolean?]
-             [:last-viewed-at {:optional true} inst?]]]]
-   [:active-repo {:optional true} int?]
-   [:repo/error {:optional true} string?]
-   [:new-schema app-db-schema2]])
-
 (def default-db
-  {:new-schema {:repo-list []
-                :repos {}}
+  {:repo-list []
    :repos {}})
 
 ;; Local Storage  ----------------------------------------------------------

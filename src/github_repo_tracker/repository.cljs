@@ -42,14 +42,14 @@
   [db data]
   (let [repo-id (extract-repo-id data)
         repo-info (extract-repo-info data)
-        repo-list (get-in db [:new-schema :repo-list])]
+        repo-list (get db [:repo-list])]
     (cond-> db
       (not (repo-exists? repo-list repo-id))
-      (update-in [:new-schema :repo-list]
-                 append-id-to-repo-list repo-id)
+      (update :repo-list
+              append-id-to-repo-list repo-id)
 
       true
-      (update-in [:new-schema :repos] add-repo repo-id repo-info))))
+      (update :repos add-repo repo-id repo-info))))
 
 (defn- update-app-errors
   [app-state errors]
@@ -61,7 +61,7 @@
 
 (defn- gql-track-repo-handler-failure
   [db errors]
-  (update-in db [:new-schema :app] update-app-errors errors))
+  (update db :app update-app-errors errors))
 
 (defn- set-request-loading
   [app-state adding-repo?]
@@ -94,7 +94,7 @@
            (gql-track-repo-handler-success db data)
 
            :else db)
-         (update-in [:new-schema :app] set-request-loading false)))))
+         (update :app set-request-loading false)))))
 
 (rf/reg-event-fx
  ::gql-track-repo
@@ -102,8 +102,8 @@
  (fn [{:keys [db]} [_ form]]
    (let [gql-info (repo-query form)]
      {:db (-> db
-              (update-in [:new-schema :app] set-request-loading true)
-              (update-in [:new-schema :app] clear-app-errors))
+              (update :app set-request-loading true)
+              (update :app clear-app-errors))
       :fx [[:dispatch [::re-graph/query
                        {:query (get-in gql-info [:graphql :query])
                         :variables (get-in gql-info [:graphql :variables])
@@ -114,8 +114,8 @@
  [standard-interceptors]
  (fn [db [_ id]]
    (-> db
-       (update-in [:new-schema :app] set-active-repo id)
-       (update-in [:new-schema :repos id :metadata] set-repo-viewed-status))))
+       (update :app set-active-repo id)
+       (update-in [:repos id :metadata] set-repo-viewed-status))))
 
 ;; Subs
 
@@ -124,7 +124,7 @@
 (rf/reg-sub
  ::app-state
  (fn [db _]
-   (get-in db [:new-schema :app])))
+   (get db :app)))
 
 (rf/reg-sub
  ::active-repo
@@ -163,34 +163,29 @@
 ;;; Repo
 
 (rf/reg-sub
- ::new-schema
- (fn [db _]
-   (:new-schema db)))
-
-(rf/reg-sub
  ::repos
  (fn [db _]
-   (get-in db [:new-schema :repos])))
+   (get db :repos)))
 
 (rf/reg-sub
  ::repo-list
  (fn [db _]
-   (get-in db [:new-schema :repo-list])))
+   (get db :repo-list)))
 
 (rf/reg-sub
  ::repo-by-id
  (fn [db [_ id]]
-   (get-in db [:new-schema :repos id])))
+   (get-in db [:repos id])))
 
 (rf/reg-sub
  ::repo-metadata-by-id
  (fn [db [_ id]]
-   (get-in db [:new-schema :repos id :metadata])))
+   (get-in db [:repos id :metadata])))
 
 (rf/reg-sub
  ::repo-info-by-id
  (fn [db [_ id]]
-   (get-in db [:new-schema :repos id :repo-info])))
+   (get-in db [:repos id :repo-info])))
 
 (rf/reg-sub
  ::repo-viewed?
