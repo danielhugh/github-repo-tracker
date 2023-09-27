@@ -18,6 +18,3 @@
 .calva/*
 .clj-kondo/.cache/*
 .lsp/.cache/*
-
-# Env file
-src/github_repo_tracker/env.cljs

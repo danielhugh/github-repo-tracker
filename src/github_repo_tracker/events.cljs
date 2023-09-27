@@ -1,7 +1,7 @@
 (ns github-repo-tracker.events
   (:require
+   [github-repo-tracker.config :as config]
    [github-repo-tracker.db :as db]
-   [github-repo-tracker.env :as env]
    [github-repo-tracker.interceptors :refer [standard-interceptors]]
    [re-frame.core :as rf]
    [re-graph.core :as re-graph]))
@@ -19,7 +19,7 @@
                      {:ws nil
                       :http {:url "https://api.github.com/graphql"
                              :impl {:with-credentials? false
-                                    :headers {"Authorization" (str "Bearer " env/GITHUB-ACCESS-TOKEN)}}}}]]]}))
+                                    :headers {"Authorization" (str "Bearer " config/GITHUB_ACCESS_TOKEN)}}}}]]]}))
 (rf/reg-event-fx
  ::clear-app-data
  [standard-interceptors]
