@@ -25,15 +25,15 @@
   (get-in data [:repository :id]))
 
 (defn- repo-exists?
-  [repos repo-id]
-  (some #(= % repo-id) repos))
+  [repo-list repo-id]
+  (some #(= % repo-id) repo-list))
 
 (defn- gql-track-repo-handler-success
   "Returns db with upserted repo info"
   [db data]
   (let [repo-id (extract-repo-id data)
         repo-info (extract-repo-info data)
-        repo-list (get db [:repo-list])]
+        repo-list (get db :repo-list)]
     (cond-> db
       (not (repo-exists? repo-list repo-id))
       (update :repo-list
