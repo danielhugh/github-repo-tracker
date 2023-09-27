@@ -1,18 +1,10 @@
 (ns github-repo-tracker.repository
   (:require
+   [github-repo-tracker.graphql :refer [repo-query]]
    [github-repo-tracker.interceptors :refer [standard-interceptors]]
-   [graphql-builder.core :as core]
-   [graphql-builder.parser :refer-macros [defgraphql]]
    [re-frame.core :as rf]
    [re-graph.core :as re-graph]
    [reagent.core :as r]))
-
-;; Setup
-
-(defgraphql graphql-queries "graphql/repo.graphql")
-(def query-map (graphql-builder.core/query-map graphql-queries))
-
-(def repo-query (get-in query-map [:query :repo]))
 
 ;; Helpers
 
