@@ -1,8 +1,10 @@
 (ns github-repo-tracker.views
-  (:require
-   [github-repo-tracker.events :as events]
-   [github-repo-tracker.repository :as repository]
-   [re-frame.core :as rf]))
+  (:require [github-repo-tracker.errors :refer [error-component-ui]]
+            [github-repo-tracker.events :as events]
+            [github-repo-tracker.repository.views :refer [release-notes-ui
+                                                          repo-list-ui
+                                                          track-repo-form-ui]]
+            [re-frame.core :refer [dispatch]]))
 
 (defn main-panel []
   [:div.container.is-fluid
@@ -11,13 +13,13 @@
      [:h1.title.column "GitHub Repo Tracker"]
      [:div.column.is-2
       [:button.button.is-danger.is-pulled-right
-       {:on-click #(rf/dispatch [::events/clear-app-data])}
+       {:on-click #(dispatch [::events/clear-app-data])}
        "Clear App Data"]]]]
    [:main
-    [repository/track-repo-form-ui]
-    [repository/error-component-ui]
+    [track-repo-form-ui]
+    [error-component-ui]
     [:div.columns
      [:div.column.is-6
-      [repository/repo-list-ui]]
+      [repo-list-ui]]
      [:div.column
-      [repository/release-notes-ui]]]]])
+      [release-notes-ui]]]]])
