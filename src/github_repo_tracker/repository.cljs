@@ -2,6 +2,8 @@
   (:require
    [github-repo-tracker.graphql :refer [repo-query]]
    [github-repo-tracker.interceptors :refer [standard-interceptors]]
+   [malli.core :as m]
+   [malli.error :as me]
    [re-frame.core :as rf]
    [re-graph.core :as re-graph]
    [reagent.core :as r]))
@@ -305,12 +307,39 @@
        :else
        [:p (:description release-info)])]))
 
+(def non-empty-string
+  (m/schema [:string {:min 1}]))
+
+(defn- humanize-errors
+  "Given a malli `schema`, an atom `data` containing the data to validate
+   against, and an atom `errors`, updates the atom `errors` with humanized
+   validation results in the format returned by `malli.error/humanize`."
+  [schema data errors]
+  (reset! errors (me/humanize (m/explain schema @data))))
+
+(defn error-message
+  [form-state error-state k]
+  (let [error-msg (str (first (get error-state k)))]
+    (when (and (contains? form-state k)
+               (contains? error-state k))
+      [:p.help.is-danger (str "Error: " error-msg)])))
+
 (defn track-repo-form-ui []
-  (r/with-let [draft (r/atom {})]
+  (r/with-let [draft (r/atom {})
+               validation-errors (r/atom {})
+               form-schema [:map
+                            [:owner non-empty-string]
+                            [:name non-empty-string]]
+               run-validation #(humanize-errors form-schema draft validation-errors)
+               valid-form? #(and (nil? @validation-errors)
+                                 (not (empty? @draft)))]
     [:form {:on-submit (fn [e]
                          (.preventDefault e)
-                         (rf/dispatch [::gql-track-repo @draft])
-                         (reset! draft {}))}
+                         (run-validation)
+                         (when (valid-form?)
+                           (rf/dispatch [::gql-track-repo @draft])
+                           (reset! draft {})
+                           (reset! validation-errors {})))}
      [:div.field
       [:label.label "Repository Owner"]
       [:div.control
@@ -319,7 +348,9 @@
          :placeholder "e.g. microsoft"
          :disabled @(rf/subscribe [::adding-repo?])
          :value (:owner @draft)
-         :on-change #(swap! draft assoc :owner (-> % .-target .-value))}]]]
+         :on-change #(do (swap! draft assoc :owner (-> % .-target .-value))
+                         (run-validation))}]]
+      [error-message @draft @validation-errors :owner]]
      [:div.field
       [:label.label "Repository Name"]
       [:div.control
@@ -328,9 +359,12 @@
          :placeholder "e.g. vscode"
          :disabled @(rf/subscribe [::adding-repo?])
          :value (:name @draft)
-         :on-change #(swap! draft assoc :name (-> % .-target .-value))}]]]
+         :on-change #(do (swap! draft assoc :name (-> % .-target .-value))
+                         (run-validation))}]]
+      [error-message @draft @validation-errors :name]]
      [:div.control
       [:button.button.is-primary
        {:type "submit"
-        :disabled @(rf/subscribe [::adding-repo?])}
+        :disabled (or (not (valid-form?))
+                      @(rf/subscribe [::adding-repo?]))}
        "Track Repo"]]]))
