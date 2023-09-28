@@ -307,7 +307,10 @@
 
 (defn track-repo-form-ui []
   (r/with-let [draft (r/atom {})]
-    [:form
+    [:form {:on-submit (fn [e]
+                         (.preventDefault e)
+                         (rf/dispatch [::gql-track-repo @draft])
+                         (reset! draft {}))}
      [:div.field
       [:label.label "Repository Owner"]
       [:div.control
@@ -329,9 +332,5 @@
      [:div.control
       [:button.button.is-primary
        {:type "submit"
-        :disabled @(rf/subscribe [::adding-repo?])
-        :on-click (fn [e]
-                    (.preventDefault e)
-                    (rf/dispatch [::gql-track-repo @draft])
-                    (reset! draft {}))}
+        :disabled @(rf/subscribe [::adding-repo?])}
        "Track Repo"]]]))
