@@ -13,6 +13,13 @@
    [:viewed? boolean?]
    [:last-viewed-at inst?]])
 
+(def Release
+  [:map
+   [:id string?]
+   [:description string?]
+   [:tagName string?]
+   [:publishedAt string?]])
+
 (def Repository
   [:map
    [:id string?]
@@ -20,13 +27,7 @@
    [:name string?]
    [:nameWithOwner string?]
    [:url string?]
-   [:latestRelease
-    [:maybe
-     [:map
-      [:id string?]
-      [:description string?]
-      [:tagName string?]
-      [:publishedAt string?]]]]])
+   [:latestRelease [:maybe Release]]])
 
 ;; Forms
 
