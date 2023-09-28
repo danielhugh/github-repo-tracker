@@ -305,7 +305,7 @@
        :else
        [:p (:description release-info)])]))
 
-(defn graphql-form-ui []
+(defn track-repo-form-ui []
   (r/with-let [draft (r/atom {})]
     [:form
      [:div.field

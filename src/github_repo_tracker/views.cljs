@@ -14,7 +14,7 @@
        {:on-click #(rf/dispatch [::events/clear-app-data])}
        "Clear App Data"]]]]
    [:main
-    [repository/graphql-form-ui]
+    [repository/track-repo-form-ui]
     [repository/error-component-ui]
     [:div.columns
      [:div.column.is-6
