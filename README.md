@@ -4,6 +4,15 @@ A [re-frame](https://github.com/day8/re-frame) application designed to track Git
 
 ## Getting Started
 
+### Environment Variables
+
+Ensure the following environment variables are defined:
+
+```bash
+# The project uses the GitHub GraphQL API which requires authentication. The default options on a fine-grained personal access token which can read all public repos is sufficient. Reference: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token
+GITHUB_ACCESS_TOKEN=secret
+```
+
 ### Project Overview
 
 * Architecture:
