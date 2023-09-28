@@ -65,7 +65,7 @@
 
 (defn db->local-store
   [db]
-  (.setItem js/localStorage ls-key (str db)))
+  (.setItem js/localStorage ls-key (str (dissoc db :app))))
 
 ;; cofx Registrations  -----------------------------------------------------
 
